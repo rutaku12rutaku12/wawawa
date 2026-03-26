@@ -37,6 +37,6 @@ public class UserService {
             throw new RuntimeException("비밀번호 틀림");
         }
 
-        return jwtUtil.createToken(user.getUsername());
+        return jwtUtil.createToken(user.getId());
     }
 }
