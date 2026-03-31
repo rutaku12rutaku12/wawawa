@@ -7,6 +7,7 @@ import lombok.Setter;
 import web.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -14,6 +15,9 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class Post {
+
+    @OneToMany(mappedBy = "post")
+    private List<PostCelebrity> postCelebrities;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -26,4 +26,6 @@ public class PostCelebrity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "celebrity_id")
     private Celebrity celebrity;
+
+
 }

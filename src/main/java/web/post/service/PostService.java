@@ -1,12 +1,16 @@
 package web.post.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import web.celebrity.entity.Celebrity;
 import web.celebrity.repository.CelebrityRepository;
 import web.item.entity.Item;
 import web.item.repository.ItemRepository;
 import web.post.dto.PostCreateDto;
+import web.post.dto.PostResponseDto;
+import web.post.dto.PostUpdateDto;
 import web.post.entity.Post;
 import web.post.entity.PostCelebrity;
 import web.post.entity.PostItem;
@@ -16,7 +20,10 @@ import web.post.repository.PostRepository;
 import web.user.entity.User;
 import web.user.repository.UserRepository;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,5 +79,75 @@ public class PostService {
 
             postItemRepository.save(pi);
         }
+
     }
+
+    public List<PostResponseDto> getPosts(Pageable pageable) {
+
+        Page<Post> page = postRepository.findAll(pageable);
+
+        return page.getContent().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public PostResponseDto getPost(Long postId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+
+        return toDto(post);
+    }
+    private PostResponseDto toDto(Post post) {
+        List<String> celebrityNames = post.getPostCelebrities()
+                .stream()
+                .map(pc -> pc.getCelebrity().getName())
+                .collect(Collectors.toList());
+
+        return PostResponseDto.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .username(post.getUser().getUsername())
+                .celebrityNames(celebrityNames)
+                .createdAt(post.getCreatedAt())
+                .build();
+    }
+
+    @Transactional
+    public void updatePost(Long postId, Long userId, PostUpdateDto dto) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+
+        // 작성자 검증
+        if (!post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("수정 권한 없음");
+        }
+
+        // 값이 있을 때만 수정
+        if (dto.getTitle() != null) {
+            post.setTitle(dto.getTitle());
+        }
+
+        if (dto.getContent() != null) {
+            post.setContent(dto.getContent());
+        }
+    }
+
+    @Transactional
+    public void deletePost(Long postId, Long userId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+
+        // 작성자 검증
+        if (!post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("삭제 권한 없음");
+        }
+
+        postRepository.delete(post);
+    }
+
+
 }
