@@ -1,12 +1,11 @@
 package web.post.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import web.post.dto.PostCreateDto;
-import web.post.dto.PostResponseDto;
-import web.post.dto.PostUpdateDto;
+import web.post.dto.*;
 import web.post.service.PostService;
 
 
@@ -52,5 +51,22 @@ public class PostController {
             @AuthenticationPrincipal Long userId
     ) {
         postService.deletePost(id, userId);
+    }
+
+    @PostMapping("/{postId}/items/{itemId}")
+    public void addItem(
+            @PathVariable Long postId,
+            @PathVariable Long itemId
+    ) {
+        postService.addItemToPost(postId, itemId);
+    }
+    @GetMapping("/{postId}")
+    public PostDetailResponseDto getDetail(@PathVariable Long postId) {
+        return postService.getPostDetail(postId);
+    }
+
+    @GetMapping
+    public Page<PostListResponseDto> getList(Pageable pageable) {
+        return postService.getPostList(pageable);
     }
 }

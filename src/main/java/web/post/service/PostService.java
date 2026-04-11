@@ -1,6 +1,6 @@
 package web.post.service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -8,9 +8,7 @@ import web.celebrity.entity.Celebrity;
 import web.celebrity.repository.CelebrityRepository;
 import web.item.entity.Item;
 import web.item.repository.ItemRepository;
-import web.post.dto.PostCreateDto;
-import web.post.dto.PostResponseDto;
-import web.post.dto.PostUpdateDto;
+import web.post.dto.*;
 import web.post.entity.Post;
 import web.post.entity.PostCelebrity;
 import web.post.entity.PostItem;
@@ -73,10 +71,7 @@ public class PostService {
 
             Item item = itemRepository.findById(itemId).orElseThrow();
 
-            PostItem pi = new PostItem();
-            pi.setPost(post);
-            pi.setItem(item);
-
+            PostItem pi = new PostItem(post, item);
             postItemRepository.save(pi);
         }
 
@@ -149,5 +144,49 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
+    public void addItemToPost(Long postId, Long itemId) {
 
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("post 없음"));
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("item 없음"));
+
+        PostItem postItem = new PostItem(post, item);
+
+        postItemRepository.save(postItem);
+    }
+
+    @Transactional(readOnly = true)
+    public PostDetailResponseDto getPostDetail(Long postId) {
+
+        Post post = postRepository.findDetailById(postId)
+                .orElseThrow(() -> new RuntimeException("post 없음"));
+
+        // Item 변환
+        List<ItemDto> items = post.getPostItems().stream()
+                .map(pi -> new ItemDto(
+                        pi.getItem().getName(),
+                        pi.getItem().getBrand().getName()
+                ))
+                .toList();
+
+        // Celebrity 변환
+        List<String> celebrities = post.getPostCelebrities().stream()
+                .map(pc -> pc.getCelebrity().getName())
+                .toList();
+
+        return new PostDetailResponseDto(
+                post.getId(),
+                post.getTitle(),
+                items,
+                celebrities
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PostListResponseDto> getPostList(Pageable pageable) {
+        return postRepository.findPostList(pageable);
+    }
 }

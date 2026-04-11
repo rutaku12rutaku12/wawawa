@@ -1,17 +1,14 @@
 package web.item.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 import web.brand.entity.Brand;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "items")
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Entity
 public class Item {
 
     @Id
@@ -20,22 +17,27 @@ public class Item {
 
     private String name;
     private String category;
+
+    @Column(name = "image_url")
     private String imageUrl;
 
-    private Integer price;
+    private int price;
     private String link;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+    // 👇 생성자
+    public Item(String name, String category, String imageUrl,
+                int price, String link, String description, Brand brand) {
+        this.name = name;
+        this.category = category;
+        this.imageUrl = imageUrl;
+        this.price = price;
+        this.link = link;
+        this.description = description;
+        this.brand = brand;
     }
 }

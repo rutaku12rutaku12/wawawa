@@ -19,6 +19,9 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private List<PostCelebrity> postCelebrities;
 
+    @OneToMany(mappedBy = "post")   // 👈 이거 추가
+    private List<PostItem> postItems;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
